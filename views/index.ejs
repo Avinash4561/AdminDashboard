@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="refresh" content="1800" />
+  <title>Admindashboard</title>
+  <style>
+    li#logList {
+      height: 261px;
+      overflow: auto;
+    }
+
+    .dropdown-menu {
+      min-width: auto;
+    }
+
+    .dropdown-submenu {
+      position: relative;
+    }
+
+    .dropdown-submenu .dropdown-menu {
+      top: 0;
+      left: 100%;
+      margin-top: -1px;
+    }
+
+    .dropdown-menu a,
+    .dropdown-menu a:focus,
+    .dropdown-menu a:hover {
+      text-decoration: none !important;
+      outline: none !important;
+    }
+
+    .dropdown-submenu .dropdown-menu.menu-show {
+      display: block !important;
+      max-height: 150px;
+      overflow: auto;
+    }
+
+    .dropdown-submenu .dropdown-menu.menu-hide {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body>
+  <h2 align=center>Canvas Admin Dashboard</h2>
+
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-3  col-sm-12">
+        <div class="panel panel-default">
+          <div class="panel-heading" 
+              style="cursor: pointer"
+              onclick="window.open('https://status.instructure.com/','_blank')">
+              Canvas Status
+          </div>
+          <div class="panel-body">
+            <!--  Purpose :Script added to show the status of Canvas from its website -->
+		<div class='embed-container'>
+              <embed src='https://status.instructure.com/' style='border:0'></embed>
+	        </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-sm-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">SIS Import Status
+
+            <!-- Trigger the modal with a button -->
+            <div class="dropdown pull-right">
+              <%="(" + timeintervaldisplay + " minutes, " + zonedisplay + ")"%>
+                <button id="SettingsButton" type="button" align=" pull-right" class="btn btn-info btn-sm" data-toggle="modal" data-target="#myModal">
+                  <img src="/admindashboard_assets/img/settings.png" />
+                </button>
+            </div>
+
+            <!-- Modal -->
+            <div id="myModal" class="modal fade" role="dialog">
+              <div class="modal-dialog">
+
+                <!-- Modal content-->
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Settings</h4>
+                  </div>
+                  <form action= "/admindashboard/request/update_settings" >
+                    <div class="modal-body">
+                      <a href="<%- baseURI+ '/admindashboard/request'%>" id="getTime" style="display:none"></a>
+                      <p>Select the location</p>
+
+                      <!-- <select id="volume">
+                        
+                        <%
+                        var options = [ "1", "5", "10", "50", "75", "100" ];
+                        
+                        for ( var i = 0; i < options.length; i++ )
+                        {
+                            var indexValue = options.indexOf("50");
+                            var selected = ( indexValue == i ) ? "selected" : "";
+                            %><option value="<%=options[ indexValue ] %>" <%=selected %>><%=options[ i ] %></option><%
+                        }
+                        %>
+                        </select> -->
+
+                      <select id="Timezoneid" name="timeZone">
+                          <%
+                          var options = [ "America/Antigua", "America/Aruba", "America/Barbados", "America/Chicago", "America/Costa_Rica",
+                           "America/Detroit", "America/Dominica", "America/El_Salvador", "America/Guatemala", "America/Grenada",
+                            "America/Indiana/Indianapolis",  "America/Jamaica", "America/LouisVille", "America/Mexico_City",
+                          "America/NewYork", "America/panama", "America/Phoenix", "America/st_Kitts", "America/St_lucia", 
+                          "America/St_Vincent"];
+                          
+                          
+
+                          for ( var i = 0; i < options.length; i++ )
+                          {
+                              var indexValue = options.indexOf(zonedisplay);
+                              var selected = ( indexValue == i ) ? "selected" : "";
+                              %><option value="<%=options[ i ] %>" <%=selected %>><%=options[ i ] %></option><%
+                          }
+                          %>
+                      </select>
+
+                      <p>
+                        <br> Select the Time Interval</p>
+                      <select id="TimeIntervalid" name="timeInterval">
+                          <%
+                          var options_time = ["Half Hour", "One Hour", "Two Hour", "Four Hour", "Sixth Hour", "Eigth Hour"];
+                          var values_time = ["30", "60", "120", "240", "360", "480"];
+
+                          for ( var i = 0; i < options_time.length; i++ )
+                          {
+                              var indexValue = values_time.indexOf(timeintervaldisplay);
+                              var selected = ( indexValue == i ) ? "selected" : "";
+                              %><option value="<%=values_time[ i ] %>" <%=selected %>><%=options_time[ i ] %></option><%
+                          }
+                          %>
+                      </select>
+
+                      <p>
+                        <br> Enter admin email for warning and error notifications:</p>
+                      <input id="Emailid" name="emailId" type="email" placeholder="Enter email" value="<%=emailDisplay%>" class="form-control input-md" required="">
+                    </div>
+                    <div class="modal-footer">
+                      <button type="submit" class="btn btn-default">Submit</button>
+                      <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                  </form>
+                </div>
+
+              </div>
+            </div>
+          </div>
+          <div class="panel-body">
+            <table align="center">
+              <tr>
+                <th></th>
+                <th align='center'>Start Date</th>
+                <th>End Date</th>
+                <th>State</th>
+              </tr>
+              <tr>
+                <th>Enrollments</th>
+                <td>
+                  <%=time.timeenrollment%>
+                </td>
+                <td>
+                  <%=time.endenrollment%>
+                </td>
+                <td id="myBtn">
+                  <p id="enrollementwarning" style="display: none">
+                    <%=JSON.stringify(enrollmentsname)%>
+                  </p>
+                  <p id="errors" style="display: none">
+                    <%=JSON.stringify(errors)%>
+                  </p>
+                  <%if(fail===true){%>
+                    <a>
+                      <img onclick="error()" src="/admindashboard_assets/img/emergency.png" title="Error" width="24" height="24">
+                    </a>
+                    <% } else if(enrollmentsname.length>0){%>
+                      <a>
+                        <img src="/admindashboard_assets/img/warning.png" title="Warning" width="24" height="24">
+                      </a>
+                      <%} else if(time.endenrollment=='__'){%>
+                        <a>__</a>
+                        <%} else if(enrollmentsname.length===0){%>
+                          <a>
+                            <img src="/admindashboard_assets/img/ok.png" title="Ok" width="24" height="24">
+                          </a>
+                          <%}%>
+                </td>
+              </tr>
+              <tr>
+                <th>Courses</th>
+                <td>
+                  <%=time.timecourse%>
+                </td>
+                <td>
+                  <%=time.endcourse%>
+                </td>
+                <td id="myBtn1">
+                  <p id="coursewarning" style="display: none">
+                    <%=JSON.stringify(courses)%>
+                  </p>
+                  <%if(fail===true){%>
+                    <a>
+                      <img onclick="error()" src="/admindashboard_assets/img/emergency.png" title="Error" width="24" height="24">
+                    </a>
+                    <% } else if(courses.length>0){%>
+                      <a>
+                        <img src="/admindashboard_assets/img/warning.png" title="Warning" width="24" height="24">
+                      </a>
+                      <%} else if(time.timecourse=='__'){%>
+                        <a>__</a>
+                        <%} else if(courses.length===0){%>
+                          <a>
+                            <img src="/admindashboard_assets/img/ok.png" title="Ok" width="24" height="24">
+                          </a>
+                          <%}%>
+                </td>
+              </tr>
+              <tr>
+                <th>Sections</th>
+                <td>
+                  <%=time.timesection%>
+                </td>
+                <td>
+                  <%=time.endsection%>
+                </td>
+                <td id="myBtn2">
+                  <p id="sectionwarning" style="display: none">
+                    <%=JSON.stringify(section)%>
+                  </p>
+                  <%if(fail===true){%>
+                    <a>
+                      <img onclick="error()" src="/admindashboard_assets/img/emergency.png" title="Error" width="24" height="24">
+                    </a>
+                    <% } else if(section.length>0){%>
+                      <a>
+                        <img src="/admindashboard_assets/img/warning.png" title="Warning" width="24" height="24">
+                      </a>
+                      <%} else if(time.timesection=='__'){%>
+                        <a>__</a>
+                        <%} else if(section.length===0){%>
+                          <a>
+                            <img src="/admindashboard_assets/img/ok.png" title="Ok" width="24" height="24">
+                          </a>
+                          <%}%>
+                </td>
+              </tr>
+              <tr>
+                <th>Users</th>
+                <td>
+                  <%=time.timeuser%>
+                </td>
+                <td>
+                  <%=time.enduser%>
+                </td>
+                <td id="myBtn3">
+                  <p id="userwarning" style="display: none">
+                    <%=JSON.stringify(users)%>
+                  </p>
+                  <%if(fail===true){%>
+                    <a>
+                      <img onclick="error()" src="/admindashboard_assets/img/emergency.png" title="Error" width="24" height="24">
+                    </a>
+                    <% } else if(users.length>0){%>
+                      <a>
+                        <img src="/admindashboard_assets/img/warning.png" title="Warning" width="24" height="24">
+                      </a>
+                      <%} else if(time.timeuser=='__'){%>
+                        <a>__</a>
+                        <%}   else if(users.length===0){%>
+                          <a>
+                            <img src="/admindashboard_assets/img/ok.png" title="Ok" width="24" height="24">
+                          </a>
+                          <%}%>
+                </td>
+              </tr>
+              <tr>
+                <%if(file!=''){%>
+                  <th>
+                    <%=file%>
+                  </th>
+                  <td>
+                    <%=startdate%>
+                  </td>
+                  <td>
+                    <%=enddate%>
+                  </td>
+                  <td id="myBtn4">
+                    <%if(filewarning.length>0){%>
+                      <a>
+                        <img src="/admindashboard_assets/img/warning.png" title="Warning" width="24" height="24">
+                      </a>
+                      <%} else if(filewarning.length==0){%>
+                        <a>
+                          <img src="/admindashboard_assets/img/ok.png" title="Ok" width="24" height="24">
+                        </a>
+                  </td>
+                  <%}%>
+                    <%}%>
+              </tr>
+            </table>
+            <%if(logLink.length!=0){%>
+
+            <div class="btn-group">
+              <button type="button" class="btn btn-default btn-md dropdown-toggle" data-toggle="dropdown">
+                DownloadSISLogFiles
+                <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu" onclick="disableOther()">
+                <li class="dropdown-submenu" id="logList">
+                  <% for(var counter = logLink.length-1; counter >= 0; counter--) {%>
+                    <a href=<%="/admindashboard_assets/logFiles/" +logLink[counter] %> </a>
+                    <%=logLink[counter]%>
+                      </a>
+                      <% } %>
+
+                </li>
+              </ul>
+            </div>
+            <%}%>
+            <%if(userWarningsLink.length != 0 || courseWarningsLink.length !=0 || sectionWarningsLink != 0 || enrollmentWarningsLink.length != 0){%>
+
+            <div class="btn-group">
+              <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">WarningFiles
+                <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu">
+                <li class="dropdown-submenu">
+                  <a class="test" tabindex="-1" href="#">userWarningsFile
+                    <span class="caret"></span>
+                  </a>
+                  <ul class="dropdown-menu">
+                    <% for(var counter = userWarningsLink.length-1; counter >= 0 ; counter--) {%>
+                      <li>
+                        <a href=<%="/admindashboard_assets/warningFiles/users/" +userWarningsLink[counter] %>>
+                          <%=userWarningsLink[counter]%>
+                        </a>
+                      </li>
+                      <% } %>
+
+                  </ul>
+                </li>
+                <li class="dropdown-submenu">
+                  <a class="test" tabindex="-1" href="#">courseWarningsFile
+                    <span class="caret"></span>
+                  </a>
+                  <ul class="dropdown-menu">
+                    <% for(var counter = courseWarningsLink.length-1 ; counter >= 0; counter--) {%>
+                      <li>
+                        <a href=<%="/admindashboard_assets/warningFiles/courses/" +courseWarningsLink[counter] %>>
+                          <%=courseWarningsLink[counter]%>
+                        </a>
+                      </li>
+                      <% } %>
+                  </ul>
+                </li>
+                <li class="dropdown-submenu">
+                  <a class="test" tabindex="-1" href="#">sectionWarningsFile
+                    <span class="caret"></span>
+                  </a>
+                  <ul class="dropdown-menu">
+                    <% for(var counter = sectionWarningsLink.length; counter >= 0; counter--) {%>
+                      <li>
+                        <a href=<%="/admindashboard_assets/warningFiles/sections/" +sectionWarningsLink[counter] %>>
+                          <%=sectionWarningsLink[counter]%>
+                        </a>
+                      </li>
+                      <% } %>
+                  </ul>
+                </li>
+                <li class="dropdown-submenu">
+                  <a class="test" tabindex="-1" href="#">enrollmentWarningsFile
+                    <span class="caret"></span>
+                  </a>
+                  <ul class="dropdown-menu">
+                    <% for(var counter = enrollmentWarningsLink.length; counter >= 0; counter--) {%>
+                      <li>
+                        <a href=<%="/admindashboard_assets/warningFiles/enrollments/" +enrollmentWarningsLink[counter] %>>
+                          <%=enrollmentWarningsLink[counter]%>
+                        </a>
+                      </li>
+                      <% } %>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+            <%}%>
+
+
+          </div>
+        </div>
+        <div id="myModal for warnings and logs" class="modal">
+
+          <!-- Modal content -->
+          <div class="modal-content">
+            <span id="span" class="close">&times;</span>
+            <div data-role="header">
+              <h3 align="center" id="modelhead"></h3>
+            </div>
+            <ul class="scroll">
+              <div id='para'></div>
+            </ul>
+            <a align="Center" onclick="buttonfunction()" class="button style2">close</a>
+          </div>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-heading">Statistics</div>
+          <div class="panel-body">
+            <table align="center">
+              <tr>
+                <th></th>
+                <th>Total Records</th>
+                <th>Warning Count</th>
+              </tr>
+              <tr>
+                <th>Enrollments</th>
+                <td align="center">
+                  <%=recordCount.countenrollments%>
+                </td>
+                <td>
+                  <%=enrollmentsname.length%>
+                </td>
+              </tr>
+              <tr>
+                <th>Courses</th>
+                <td>
+                  <%=recordCount.countcourses%>
+                </td>
+                <td>
+                  <%=courses.length%>
+                </td>
+              </tr>
+              <tr>
+                <th>Sections</th>
+                <td>
+                  <%=recordCount.countsection%>
+                </td>
+                <td>
+                  <%=section.length%>
+                </td>
+              </tr>
+              <tr>
+                <th>Users</th>
+                <td>
+                  <%=recordCount.countusers%>
+                </td>
+                <td>
+                  <%=users.length%>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-12">
+        <div class="panel panel-default">
+          <div class="panel-heading">Canvas Calendar</div>
+          <div class="panel-body">
+            <div class='embed-container'>
+              <embed src='https://calendar.google.com/calendar/embed?showPrint=0&showCalendars=0&mode=AGENDA&height=600&wkst=1&bgcolor=%23FFFFFF&src=instructure.com_u3bufsip887n3qb6fht3rgnbts@group.calendar.google.com&color=%23125A12&ctz=America/Denver&pli=1'
+                width='fill' height=500 align='center' />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script>
+    var baseURL = <%- JSON.stringify(baseURI) %>
+  </script>
+  <script src="/admindashboard_assets/js/bootstrap.js"></script>
+  <script src="/admindashboard_assets/js/custom.js"></script>
+
+  <link rel="stylesheet" href="/admindashboard_assets/css/CustomStyles.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+</body>
+
+<script>
+    $(document).ready(function () {
+      $(".dropdown-submenu a.test").on("click", function (e) {
+
+        if (!($(this).next("ul").hasClass("menu-show"))) {
+          $(".dropdown-submenu .dropdown-menu").removeClass("menu-hide");
+          $(".dropdown-submenu .dropdown-menu").removeClass("menu-show");
+          $(this).next("ul").toggleClass("menu-show");
+        }
+        else {
+          $(".dropdown-submenu .dropdown-menu").addClass("menu-hide");
+          $(".dropdown-submenu .dropdown-menu").removeClass("menu-show");
+          $(this).next("ul").toggleClass("menu-show");
+        }
+        e.stopPropagation();
+        e.preventDefault();
+      });
+      $('body').click(function () {
+        $(".dropdown-submenu .dropdown-menu").removeClass("menu-show");
+      })
+    });
+
+  var btn = document.getElementById("myBtn");
+  var btn1 = document.getElementById("myBtn1");
+  var btn2 = document.getElementById("myBtn2");
+  var btn3 = document.getElementById("myBtn3");
+  var btn4 = document.getElementById("myBtn4");
+
+  btn.onclick = function () {
+    var string1 = '';
+    var warning = '';
+
+    warning =<%- JSON.stringify(enrollmentsname) %>
+  if (warning.length > 0) {
+      string1 = "Warning in Enrollments"
+      myfunction(warning, string1);
+    }
+  }
+
+  btn1.onclick = function () {
+    var warning = '';
+    warning =<%- JSON.stringify(courses) %>
+  if (warning.length > 0) {
+      string1 = "Warning in Courses";
+      myfunction(warning, string1);
+    }
+  }
+
+  btn2.onclick = function () {
+    var warning = '';
+    warning =<%- JSON.stringify(section) %>
+  if (warning.length > 0) {
+      string1 = "Warning in Sections";
+      myfunction(warning, string1);
+    }
+  }
+
+  btn3.onclick = function () {
+    var warning = '';
+    warning = <%- JSON.stringify(users) %>
+  if (warning.length > 0) {
+      string1 = "Warning in Users";
+      myfunction(warning, string1);
+    }
+  }
+
+  function error() {
+    warning =<%- JSON.stringify(errors) %>
+      string1="ERROR"
+    myfunction(warning, string1);
+  }
+</script>
+
+</html>
